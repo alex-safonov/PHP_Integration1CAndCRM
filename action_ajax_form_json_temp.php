@@ -11,7 +11,7 @@ $params = array(
 // Эмулируем массив для JSON ответа
 
 // $params = array(
-//     'name' => '1C_temp.csv',
+//     'name' => '1C.csv',
 //     'string' => '0',
 //     'quantity' => '1',
 // ); 
@@ -546,6 +546,8 @@ $result = sendtoBTX('crm.timeline.comment.add',$params_lead_timeline);  // Об�
 
 //print_r($arContact);
 
+
+
             $ID_Contact_CRM = $arContact[result][0][ID]; // Получаем значение ID контакта в CRM для передачи в 1С 
 
             $status_of_create = 'v.01 - Обновляем существующий контакт:   == ПРОВЕРИТЬ ДАННЫЕ В CRM ==';
@@ -573,6 +575,9 @@ $result = sendtoBTX('crm.timeline.comment.add',$params_lead_timeline);  // Об�
 
 //            echo 'Код для дополнения данных в CRM из файла Excel<br>';
 
+
+
+
 // Функция добавления телефонов и emailов в существующий контакт:
 
 // Сравниваем даты создания Контакта в CRM и 1С:
@@ -591,7 +596,7 @@ $result = sendtoBTX('crm.timeline.comment.add',$params_lead_timeline);  // Об�
             ),
         );
          //Раскомментировать:                         
-        $result9 = sendtoBTX('crm.contact.update', $params_update_contact); // Обновляем контакт  
+        $result9 = sendtoBTX('crm.contact.update', $params_update_contact); // Создаем контакт  
         // Раскомментировать:                        
         $arContact9 = json_decode($result9,true); // получаем значение для вывода        
 
@@ -799,84 +804,8 @@ $result = sendtoBTX('crm.timeline.comment.add',$params_lead_timeline);  // Об�
 /* ======================================= КОНЕЦ БЛОКА =======================================*/
 
 
-/* ===========================================================================================*/
-/* ====================== ДЛЯ КОНТАКТА В CRM ОПРЕДЕЛЯЕМ СВЯЗАННЫЕ ЛИДЫ =======================*/
-/* ======================= И ДОБАВЛЯЕМ ИМ ID КОНТАКТА В ПОЛЕ CONTACT_ID ======================*/
-/* ===========================================================================================*/
-
-//  $ID_Contact_CRM - ID КОНТАКТА В CRM
-
-    // $params2 = array(
-    //         'filter' => array('UF_CRM_5C7E87AF41569' => $id_1c), // фильтруем контакты по наличию ID1С из файла Excel
-    //         'select' => array('ID', 'NAME', 'PHONE', 'EMAIL', 'UF_CRM_5C7E87AF41569', 'UF_CRM_1582804562007'), // выводим необходимые нам поля
-    //         );
-    // $result2 = sendtoBTX('crm.contact.list',$params2); // Получаем данные конта
-
-$params10 = array(
-            'filter' => array('ID' => $ID_Contact_CRM), // фильтруем контакты по наличию ID1С из файла Excel
-            'select' => array('UF_CRM_1574949535'), // выводим необходимые нам поля
-            );
-    $result10 = sendtoBTX('crm.contact.list',$params10); // Получаем данные конта
-    $arContact10 = json_decode($result10,true); // получаем значение для вывода        
-
-            // Раскомментировать:               
-//            echo 'Выводим ID контакта в CRM:<br>'.$arContact8[result].'<br>';
-// print_r ($arContact10);
-// print_r ($arContact10[result][0][UF_CRM_1574949535]);
-
-$array_leads = $arContact10[result][0][UF_CRM_1574949535]; // Получаем массив связанных лидов у контакта
-
-// print_r ($array_leads);
-
-            foreach ($array_leads as $each_lead) { // Перебор массива с Лидами
-
-                $params_lead = array(
-                    'id' => $each_lead,
-                    );
-
-                $result11 = sendtoBTX('crm.lead.get',$params_lead); // получаем значения полей Лида Лида  
-                $arContact11 = json_decode($result11,true); // получаем значение для вывода
-
-                       // print_r($arContact11[result][CONTACT_ID]);
-                       // echo '<br>';
-
-                if (!$arContact11[result][CONTACT_ID]) { // Если у Лида не заполнено поле CONTACT_ID ("Клиент в CRM")
-                $params_lead = array(                
-                    'id' => $each_lead,
-                    'fields' => array( 
-                        'CONTACT_ID' => $ID_Contact_CRM, // Лидам добавляем ID Контакта
-                    ),
-                );
-                $result12 = sendtoBTX('crm.lead.update',$params_lead); // Обновляем значения Лидов  
-                $arContact12 = json_decode($result12,true); // получаем значение для вывода       
-
-                } else {
-                     // print_r("ID есть");
-                }
-            }
-        unset($value); // разорвать ссылку на последний элемент    
-        // }
-
-//             foreach ($ContactALL_Leads as $ID_lead) { // Перебор массива со связанными Лидами
-
-//                 $params_lead = array(                
-//                     'id' => $ID_lead,
-//                     'fields' => array( 
-//                         'UF_CRM_1474361222' => $lead_min, // Всем Лидам добавляем первоначальный (наименьший ID Лида)
-//                     ),
-//                 );
-//                 $result6 = sendtoBTX('crm.lead.update',$params_lead); // Обновляем значения Лидов  
-//                 $arContact6 = json_decode($result6,true); // получаем значение для вывода       
-
-// //                print_r($arContact6);
-// //                echo '<br>';
-
-//                 }
-//         unset($value); // разорвать ссылку на последний элемент    
-//         }
 
 
-/* ======================================= КОНЕЦ БЛОКА =======================================*/
 
 
 /* ===========================================================================================*/
@@ -967,11 +896,8 @@ $array_leads = $arContact10[result][0][UF_CRM_1574949535]; // Получаем �
     fclose($file_record); // Закрываем файл 
     */
 
-    /* Вывод файла для 1С через функцию file_put_contents (iconv преобразует данные в кодировку windows-1251 для 1С): */
-
-    file_put_contents('/var/www/martines.ru/web/bitrix24-api/main-upload/1C_file_2.txt',  iconv('utf-8', 'windows-1251', PHP_EOL.implode('; ', $data_for_1C)), FILE_APPEND);
-
-    // file_put_contents('/var/www/martines.ru/web/bitrix24-api/main-upload/1C_file_all.txt', PHP_EOL.implode('; ', $data_for_1C), FILE_APPEND);
+    /* Вывод файла для 1С через функцию file_put_contents: */
+    file_put_contents('/var/www/martines.ru/web/bitrix24-api/main-upload/1C_file_all.txt', PHP_EOL.implode('; ', $data_for_1C), FILE_APPEND);
     // file_put_contents('/var/www/martines.ru/web/bitrix24-api/main-upload/1C_file_'.date('Y-m-d').'.txt', PHP_EOL.implode('; ', $data_for_1C), FILE_APPEND);
 /* ======================================= КОНЕЦ БЛОКА =======================================*/
 
@@ -1007,7 +933,6 @@ $row++; // Переходим к следующей строке
 
 // print_r($data_for_json);
 
-// ==== РАСКОММЕНТИРОВАТЬ:         
 echo json_encode($data_for_1C); 
 
 // print_r($data_for_1C); 
